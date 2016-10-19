@@ -3,6 +3,7 @@ from sklearn.decomposition import PCA
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from scipy.sparse import vstack
+import matplotlib.pyplot as plt
 import numpy as np
 
 DIR = "../datasets/shakespeare/"
@@ -13,8 +14,8 @@ DATAPATH = DIR + "data.p"
 
 d = pickle.load(open(OUTPATH, "rb"))[0]
 
-LOAD = True
-PCA = True
+LOAD = False
+do_PCA = True
 
 if LOAD:
 	data = []
@@ -32,7 +33,7 @@ if LOAD:
 	mat = vect.fit_transform(sentences)
 
 	vectors = vstack(tuple([mat[i, :] - mat[i+1, :] for i in xrange(mat.shape[0]-1)]))
-	if PCA:
+
 
 	f = open(DATAPATH, "wb")
 	pickle.dump([data, labels, mat, vectors], f)
@@ -42,6 +43,18 @@ else:
 	data, labels, mat, vectors = pickle.load(f)
 	f.close()
 
+if do_PCA:
+		pca = PCA(2)
+		projected_matrix = pca.fit_transform(vectors.toarray())
+		l = labels[:-1]
+		plt.clf()
+		p_s = [i for i in xrange(len(l)) if l[i] == 1]
+		f_s = [i for i in xrange(len(l)) if l[i] != 1]
+		differens = projected_matrix[p_s, :]
+		sames = projected_matrix[f_s, :]
+		plt.plot(sames[:, 0], sames[:, 1], "bo")
+		plt.plot(differens[:, 0], differens[:, 1], "ro")
+		plt.show()
 labels = labels[:-1]
 print("Distribution is: {0}".format(float(sum(labels))/len(labels)))
 
