@@ -13,6 +13,9 @@ DATA = """FIX"""
 TEXT8 = """FIX"""
 MODEL_PATH = """FIX"""
 
+SHAKESPEARE = "../datasets/shakespeare/"
+PLAY_PATH = SHAKESPEARE + "play_dict.p"
+
 BATCH_SIZE = 32
 TIMESTEPS = 64
 BATCH_PER_EPOCH = 1
@@ -24,7 +27,21 @@ def char_mapping():
 	MUST BE FILLED IN
 	Should return a tuple of (#different inputs (chars) in dataset, mapping from char -> index, mapping from index -> char)
 	"""
-	pass
+	total_chars = 0
+    char_to_idx = {}
+    idx_to_char = {}
+    plays = pickle.load(open(PLAY_PATH, "rb"))[0]
+    for play in plays:
+        p = d[play][0]
+        for i in xrange(len(p)):
+            sentence = p[i].lower()
+            for c in sentence:
+                if c not in char_to_idx:
+                    char_to_idx[c] = total_chars
+                    idx_to_char[total_chars] = c
+                    total_chars += 1
+    return total_chars, char_to_idx, idx_to_char
+
 
 def build_model(INPUT_DIM, BATCH_SIZE, TIMESTEPS):
 	HIDDEN_DIM = 128
@@ -55,7 +72,8 @@ def data_target_generator(num_chars, c_to_l):
 	X is a one-hot data matrix of dimensions (#samples, #timesteps)
 	Y is a target matrix (0 or 1) of dimensions (#samples, #timesteps)
 	"""
-	pass
+	while True:
+
 
 
 INPUT_DIM, c_to_l, l_to_c = char_mapping()
@@ -93,4 +111,4 @@ for i in range(0, BATCH_CHARS - SEQ_LEN +1, SEQ_LEN):
             x[batch_idx][j] = T[start+j]
             print T[start+j],
     #here we would yield x (the batch) if this were an iterator
-        print"""
+        print x
