@@ -70,19 +70,20 @@ def shakespeare_soft_target_generator(word2idx):
     """
     i = 1
     X = np.zeros((NUM_SAMPLES, TIMESTEPS))
-    Y = np.zeros((NUM_SAMPLES, TIMESTEPS))
+    Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 2))
     for line_1, line_2, did_speaker_change in inf_generator(shakespeare_soft_get):
         line_1, line_2 = line_1.lower(), line_2.lower()
         line_1_split, line_2_split = line_1.split(' '), line_2.split(' ')
         words = one_hot(line_1_split + line_2_split, word2idx)
         words = sequence.pad_sequences([words], maxlen=TIMESTEPS)[0]
         
-        targets = np.array(len(words)*[0])
+        targets = np.zeros((len(words), 2))
+
         if did_speaker_change:
-            targets[len(line_1_split)] = 1
+            targets[len(line_1_split), :] = [0, 1]
 
         X[i%NUM_SAMPLES, :] = words
-        Y[i%NUM_SAMPLES, :] = targets
+        Y[i%NUM_SAMPLES] = targets
         
         if i % NUM_SAMPLES == 0:
             yield X, Y
@@ -99,7 +100,7 @@ def build_model(input_dim):
     model = Sequential()
     model.add(Embedding(input_dim + 1, HIDDEN_DIM, batch_input_shape=(BATCH_SIZE, TIMESTEPS)))
     model.add(GRU(HIDDEN_DIM, return_sequences=True, stateful=True))
-    model.add(GRU(1, activation='softmax', return_sequences=True, stateful=True))
+    model.add(GRU(2, activation='softmax', return_sequences=True, stateful=True))
     model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
     return model 
 
