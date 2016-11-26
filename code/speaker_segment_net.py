@@ -65,13 +65,12 @@ def one_hot(text, mapping):
         data[i] = mapping[text[i]]
     return data
 
-def shakespeare_soft_target_generator():
+def shakespeare_soft_target_generator(word2idx):
     """
     Should run forever, yielding (X, Y), where:
     X is a one-hot data matrix of dimensions (#samples, #timesteps)
     Y is a target matrix (0 or 1) of dimensions (#samples, #timesteps)
     """
-    num_words, word2idx, indx2word = word_mapping(shakespeare_raw_gen)
     i = 1
     X = np.zeros((NUM_SAMPLES, TIMESTEPS))
     Y = np.empty(NUM_SAMPLES, dtype=np.object)
@@ -95,24 +94,23 @@ def shakespeare_soft_target_generator():
         
         i += 1
 
-def build_model(INPUT_DIM, BATCH_SIZE, TIMESTEPS):
+def build_model(input_dim):
     HIDDEN_DIM = 128
     LEARNING_RATE = 3e1
     adam = Adam(lr=LEARNING_RATE)
 
     model = Sequential()
-    model.add(Embedding(INPUT_DIM, HIDDEN_DIM, batch_input_shape=(BATCH_SIZE, TIMESTEPS)))
+    model.add(Embedding(input_dim, HIDDEN_DIM, batch_input_shape=(BATCH_SIZE, TIMESTEPS)))
     model.add(GRU(HIDDEN_DIM, return_sequences=True, stateful=True))
-    predictions = Dense(2, activation='softmax')
+    model.add(GRU(2, activation='softmax', return_sequences=True, stateful=True))
     model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
     return model 
 
+num_words, word2idx, indx2word = word_mapping(shakespeare_raw_gen)
+train_generator = shakespeare_soft_target_generator(word2idx)
+model = build_model(num_words)
 
-# INPUT_DIM, c_to_l, l_to_c = char_mapping()
-# model = build_model(INPUT_DIM, BATCH_SIZE, TIMESTEPS)
-# train_generator = data_target_generator(INPUT_DIM, c_to_l)
-
-# history = model.fit_generator(train_generator, BATCH_SIZE, NUM_EPOCH, verbose=2)
+history = model.fit_generator(train_generator, BATCH_SIZE, NUM_EPOCH, verbose=2)
 # model.save(MODEL_PATH)
 # loss = history.history['loss']
 # plt.plot(np.arange(len(loss)), loss)
