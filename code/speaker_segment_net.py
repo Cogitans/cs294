@@ -81,14 +81,14 @@ def shakespeare_soft_target_generator(word2idx):
 
         if did_speaker_change:
             targets[len(line_1_split), :] = [0, 1]
-
+        print(Y.shape, targets.shape)
         X[i%NUM_SAMPLES, :] = words
-        Y[i%NUM_SAMPLES] = targets
+        Y[i%NUM_SAMPLES, :] = targets
         
         if i % NUM_SAMPLES == 0:
             yield X, Y
             X = np.zeros((NUM_SAMPLES, TIMESTEPS))
-            Y = np.zeros((NUM_SAMPLES, TIMESTEPS))
+            Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 2))
         
         i += 1
 
