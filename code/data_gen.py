@@ -1,4 +1,5 @@
 import csv
+import numpy as np
 
 def shakespeare_raw_gen():
 	with open('../datasets/shakespeare/will_play_text.csv', 'r') as f:
@@ -19,6 +20,21 @@ def shakespeare_soft_get():
 	for line in raw_gen:
 		yield (prev_line, line[0], line[1])
 		prev_line = line[0]
+
+def shakespeare_window_gen(n):
+	raw_gen = shakespeare_raw_gen()
+	window = []
+	window_change = []
+	for i in xrange(n):
+		line = next(raw_gen)
+		window.append(line[0])
+		window_change.append(line[1])
+	for line in raw_gen:
+		yield window, np.array(window_change)
+		window.pop(0)
+		window_change.pop(0)
+		window.append(line[0])
+		window_change.append(line[1])
 
 def wilde_raw_gen():
 	for i in xrange(1,4):
