@@ -20,3 +20,26 @@ def shakespeare_soft_get():
 		yield (prev_line, line[0], line[1])
 		prev_line = line[0]
 
+def wilde_raw_gen():
+	for i in xrange(1,4):
+		with open('../datasets/wilde_{}_parsed.txt'.format(i), 'r') as f:
+			parsed_csv = csv.reader(f, delimiter=';')
+			prev_speaker = None
+			for row in parsed_csv:
+				if len(row) < 2:
+					continue
+				if len(row) > 2:
+					speaker = row[0]
+					line = '.'.join(row[1:])
+				else:
+					speaker, line = row
+				did_speaker_change = 1 if prev_speaker != speaker and prev_speaker else 0
+				prev_speaker = speaker
+				yield line, did_speaker_change
+
+def wilde_soft_gen():
+	raw_gen = wilde_raw_gen()
+	prev_line = next(raw_gen)[0]
+	for line in raw_gen:
+		yield (prev_line, line[0], line[1])
+		prev_line = line[0]

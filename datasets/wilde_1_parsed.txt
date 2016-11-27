@@ -340,7 +340,6 @@ Jack.;   I do mean something else.
 Gwendolen.;   I thought so.
 Gwendolen.; In fact, I am never wrong. 
 Jack.;   And I would like to be allowed to take advantage of Lady Bracknell's temporary absence .
- 
 Gwendolen.;   I would certainly advise you to do so.
 Gwendolen.; Mamma has a way of coming back suddenly into a room that I have often had to speak to her about. 
 Jack.;     Miss Fairfax, ever since I met you I have admired you more than any girl .
