@@ -20,7 +20,7 @@ BATCH_SIZE = 32
 NUM_SAMPLES = 32
 TIMESTEPS = 64
 BATCH_PER_EPOCH = 1
-NUM_EPOCH = 500
+NUM_EPOCH = 50
 
 
 def inf_generator(generator):
@@ -60,7 +60,7 @@ def one_hot(text, mapping):
         data[i] = mapping[text[i]]
     return data
 
-def shakespeare_soft_target_generator(word2idx):
+def shakespeare_soft_train_target_generator(word2idx):
     """
     Should run forever, yielding (X, Y), where:
     X is a one-hot data matrix of dimensions (#samples, #timesteps)
@@ -69,7 +69,7 @@ def shakespeare_soft_target_generator(word2idx):
     i = 1
     X = np.zeros((NUM_SAMPLES, TIMESTEPS))
     Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 2))
-    for line_1, line_2, did_speaker_change in inf_generator(shakespeare_soft_get):
+    for line_1, line_2, did_speaker_change in inf_generator(shakespeare_soft_train_gen):
         line_1, line_2 = line_1.lower(), line_2.lower()
         line_1_split, line_2_split = line_1.split(' '), line_2.split(' ')
         words = one_hot(line_1_split + line_2_split, word2idx)
@@ -91,7 +91,27 @@ def shakespeare_soft_target_generator(word2idx):
         
         i += 1
 
-def wilde_soft_target_generator(word2idx):
+def shakespeare_soft_test_target_generator(word2idx):
+    """
+    X is a one-hot data matrix of dimensions (#samples, #timesteps)
+    """
+    i = 1
+    X = np.zeros((NUM_SAMPLES, TIMESTEPS))
+    for line_1, line_2, did_speaker_change in inf_generator(shakespeare_soft_train_gen):
+        line_1, line_2 = line_1.lower(), line_2.lower()
+        line_1_split, line_2_split = line_1.split(' '), line_2.split(' ')
+        words = one_hot(line_1_split + line_2_split, word2idx)
+        words = sequence.pad_sequences([words], maxlen=TIMESTEPS)[0]
+
+        X[i%NUM_SAMPLES, :] = words
+        
+        if i % NUM_SAMPLES == 0:
+            yield X
+            X = np.zeros((NUM_SAMPLES, TIMESTEPS))
+        
+        i += 1
+
+def wilde_soft_train_target_generator(word2idx):
     """
     Should run forever, yielding (X, Y), where:
     X is a one-hot data matrix of dimensions (#samples, #timesteps)
@@ -133,11 +153,13 @@ def build_model(input_dim):
     model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
     return model 
 
-num_words, word2idx, indx2word = word_mapping(shakespeare_raw_gen)
-train_generator = shakespeare_soft_target_generator(word2idx)
+num_words, word2idx, indx2word = word_mapping(shakespeare_raw_train_gen)
+train_generator = shakespeare_soft_train_target_generator(word2idx)
+test_generator = shakespeare_soft_test_target_generator(word2idx)
 model = build_model(num_words)
 
 history = model.fit_generator(train_generator, BATCH_SIZE, NUM_EPOCH, verbose=2)
+model.predict_generator(test_generator)
 # model.save(MODEL_PATH)
 # loss = history.history['loss']
 # plt.plot(np.arange(len(loss)), loss)
