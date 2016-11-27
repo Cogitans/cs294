@@ -31,8 +31,6 @@ def inf_generator(generator):
         except StopIteration:
             continue
 
-
-
 def word_mapping(raw_generator):
     """
     Returns a tuple of:
@@ -122,10 +120,10 @@ def wilde_soft_target_generator(word2idx):
             Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 2))
         
         i += 1
-        
+
 def build_model(input_dim):
     HIDDEN_DIM = 128
-    LEARNING_RATE = 3e1
+    LEARNING_RATE = 3e-1
     adam = Adam(lr=LEARNING_RATE)
 
     model = Sequential()
