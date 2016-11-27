@@ -673,8 +673,7 @@ Lane.;   Yes, sir.
 Algernon.;   To-morrow, Lane, I'm going Bunburying. 
 Lane.;   Yes, sir. 
 Algernon.;   I shall probably not be back till Monday.
-Algernon.; You can put up my dress clothes, my smoking jacket, and all the Bunbury suits .
- 
+Algernon.; You can put up my dress clothes, my smoking jacket, and all the Bunbury suits . 
 Lane.;   Yes, sir.   
 Algernon.;   I hope to-morrow will be a fine day, Lane. 
 Lane.;   It never is, sir. 
