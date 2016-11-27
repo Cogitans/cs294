@@ -20,7 +20,7 @@ BATCH_SIZE = 32
 NUM_SAMPLES = 32
 TIMESTEPS = 64
 BATCH_PER_EPOCH = 1
-NUM_EPOCH = 50
+NUM_EPOCH = 15
 
 
 def inf_generator(generator):
@@ -37,8 +37,10 @@ def word_mapping(raw_generator):
         - distince # of words in dataset
         - mapping from word -> index
         - mapping from index -> word
+    Note: 0 is reserved for padding
+          1 is reserved for unknown words at test time
     """
-    total_words = 1
+    total_words = 2
     word_to_idx = {}
     idx_to_word = {}
     for line in raw_generator():
@@ -48,7 +50,7 @@ def word_mapping(raw_generator):
                     word_to_idx[word] = total_words
                     idx_to_word[total_words] = word
                     total_words += 1
-    return total_words - 1, word_to_idx, idx_to_word
+    return total_words, word_to_idx, idx_to_word
 
 def one_hot(text, mapping):
     """
@@ -57,7 +59,10 @@ def one_hot(text, mapping):
     """
     data = np.zeros(len(text))
     for i in range(len(text)):
-        data[i] = mapping[text[i]]
+        if text[i] not in mapping:
+            data[i] = 1
+        else:
+            data[i] = mapping[text[i]]
     return data
 
 def shakespeare_soft_train_target_generator(word2idx):
@@ -93,21 +98,32 @@ def shakespeare_soft_train_target_generator(word2idx):
 
 def shakespeare_soft_test_target_generator(word2idx):
     """
+    Should run forever, yielding (X, Y), where:
     X is a one-hot data matrix of dimensions (#samples, #timesteps)
+    Y is a target matrix (0 or 1) of dimensions (#samples, #timesteps)
     """
     i = 1
     X = np.zeros((NUM_SAMPLES, TIMESTEPS))
-    for line_1, line_2, did_speaker_change in inf_generator(shakespeare_soft_train_gen):
+    Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 2))
+    for line_1, line_2, did_speaker_change in shakespeare_soft_test_gen():
         line_1, line_2 = line_1.lower(), line_2.lower()
         line_1_split, line_2_split = line_1.split(' '), line_2.split(' ')
         words = one_hot(line_1_split + line_2_split, word2idx)
         words = sequence.pad_sequences([words], maxlen=TIMESTEPS)[0]
+        
+        targets = np.zeros((len(words), 2))
+        targets[:, 0] = 1
+
+        if did_speaker_change:
+            targets[len(line_1_split), :] = [0, 1]
 
         X[i%NUM_SAMPLES, :] = words
+        Y[i%NUM_SAMPLES, :] = targets
         
         if i % NUM_SAMPLES == 0:
-            yield X
+            yield X, Y
             X = np.zeros((NUM_SAMPLES, TIMESTEPS))
+            Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 2))
         
         i += 1
 
@@ -147,7 +163,7 @@ def build_model(input_dim):
     adam = Adam(lr=LEARNING_RATE)
 
     model = Sequential()
-    model.add(Embedding(input_dim + 1, HIDDEN_DIM, batch_input_shape=(BATCH_SIZE, TIMESTEPS)))
+    model.add(Embedding(input_dim, HIDDEN_DIM, batch_input_shape=(BATCH_SIZE, TIMESTEPS)))
     model.add(GRU(HIDDEN_DIM, return_sequences=True, stateful=True))
     model.add(GRU(2, activation='softmax', return_sequences=True, stateful=True))
     model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
@@ -159,7 +175,11 @@ test_generator = shakespeare_soft_test_target_generator(word2idx)
 model = build_model(num_words)
 
 history = model.fit_generator(train_generator, BATCH_SIZE, NUM_EPOCH, verbose=2)
-model.predict_generator(test_generator)
+results = model.evaluate_generator(test_generator, NUM_SAMPLES)
+
+print 'Test Time Results'
+print model.metrics_names
+print results
 # model.save(MODEL_PATH)
 # loss = history.history['loss']
 # plt.plot(np.arange(len(loss)), loss)
