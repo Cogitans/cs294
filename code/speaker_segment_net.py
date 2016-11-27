@@ -20,7 +20,7 @@ BATCH_SIZE = 32
 NUM_SAMPLES = 32
 TIMESTEPS = 64
 BATCH_PER_EPOCH = 1
-NUM_EPOCH = 500
+NUM_EPOCH = 100
 
 
 def inf_generator(generator):
@@ -70,37 +70,36 @@ def shakespeare_soft_target_generator(word2idx):
     """
     i = 1
     X = np.zeros((NUM_SAMPLES, TIMESTEPS))
-    Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 2))
+    Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 1))
     for line_1, line_2, did_speaker_change in inf_generator(shakespeare_soft_get):
         line_1, line_2 = line_1.lower(), line_2.lower()
         line_1_split, line_2_split = line_1.split(' '), line_2.split(' ')
         words = one_hot(line_1_split + line_2_split, word2idx)
         words = sequence.pad_sequences([words], maxlen=TIMESTEPS)[0]
         
-        targets = np.zeros((len(words), 2))
+        targets = np.zeros((len(words), 1))
 
         if did_speaker_change:
-            targets[len(line_1_split), :] = [0, 1]
-        print(Y.shape, targets.shape)
+            targets[len(line_1_split), :] = np.ones(1)
         X[i%NUM_SAMPLES, :] = words
         Y[i%NUM_SAMPLES, :] = targets
         
         if i % NUM_SAMPLES == 0:
             yield X, Y
             X = np.zeros((NUM_SAMPLES, TIMESTEPS))
-            Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 2))
+            Y = np.zeros((NUM_SAMPLES, TIMESTEPS, 1))
         
         i += 1
 
 def build_model(input_dim):
     HIDDEN_DIM = 128
-    LEARNING_RATE = 3e1
+    LEARNING_RATE = 3e-3
     adam = Adam(lr=LEARNING_RATE)
 
     model = Sequential()
     model.add(Embedding(input_dim + 1, HIDDEN_DIM, batch_input_shape=(BATCH_SIZE, TIMESTEPS)))
     model.add(GRU(HIDDEN_DIM, return_sequences=True, stateful=True))
-    model.add(GRU(2, activation='softmax', return_sequences=True, stateful=True))
+    model.add(GRU(1, activation='softmax', return_sequences=True, stateful=True))
     model.compile(optimizer=adam, loss='binary_crossentropy', metrics=['accuracy'])
     return model 
 
