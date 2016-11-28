@@ -76,7 +76,7 @@ def wilde_raw_gen():
 					continue
 				if len(row) > 2:
 					speaker = row[0]
-					line = '.'.join(row[1:])
+					line = '. '.join(row[1:])
 				else:
 					speaker, line = row
 				did_speaker_change = 1 if prev_speaker != speaker and prev_speaker else 0
@@ -100,7 +100,7 @@ def movie_raw_gen():
 				continue
 			if len(row) > 2:
 				speaker = row[0]
-				line = '.'.join(row[1:])
+				line = '. '.join(row[1:])
 			else:
 				speaker, line = row
 			if len(line) == 0:

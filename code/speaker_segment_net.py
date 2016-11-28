@@ -6,7 +6,7 @@ from keras.layers.recurrent import SimpleRNN, GRU, LSTM
 from keras.layers.core import Dense, Activation, Reshape, Flatten, Merge
 from keras.optimizers import SGD, RMSprop, Adagrad, Adam
 from keras.layers.embeddings import Embedding
-from keras.callbacks import Callback
+from keras.callbacks import Callback, TensorBoard
 from keras.preprocessing import sequence
 from data_gen import *
 
@@ -20,7 +20,7 @@ BATCH_SIZE = 32
 NUM_SAMPLES = 32
 TIMESTEPS = 64
 BATCH_PER_EPOCH = 1
-NUM_EPOCH = 300
+NUM_EPOCH = 1000
 
 
 def inf_generator(generator):
@@ -233,8 +233,10 @@ def many_to_one_model():
         sample_weights = np.ones(NUM_SAMPLES)
         if train:
             generator = shakespeare_soft_train_gen
+            # generator = movie_soft_train_gen
         else:
             generator = shakespeare_soft_test_gen
+            # generator = movie_soft_test_gen
 
         for line_1, line_2, did_speaker_change in inf_generator(generator):
             line_1, line_2 = line_1.lower(), line_2.lower()
@@ -262,7 +264,8 @@ def many_to_one_model():
             
             i += 1
 
-    model.fit_generator(gen(train=True), BATCH_SIZE, NUM_EPOCH)
+    model.fit_generator(gen(train=True), BATCH_SIZE, NUM_EPOCH, 
+                        callbacks=[TensorBoard(histogram_freq=20)])
     results = model.evaluate_generator(gen(train=False), NUM_SAMPLES)
     print 'Test Time Results'
     print model.metrics_names
