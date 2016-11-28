@@ -217,7 +217,7 @@ def many_to_one_model():
 
     model = Sequential()
     model.add(Merge([encoder_a, encoder_b], mode=lambda x: x[0] - x[1], output_shape=lambda x: x[0]))
-    model.add(Dense(64, activation='relu'))
+    model.add(Dense(64, activation='relu', init='glorot_normal'))
     model.add(Dense(2, activation='softmax'))
 
     model.compile(loss='binary_crossentropy',
