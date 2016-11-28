@@ -1,5 +1,6 @@
 import csv
 import numpy as np
+import random
 
 SHAKESPEARE_VALIDATION_PLAYS = ['Taming of the Shrew', 'The Tempest', 'Timon of Athens', 'Titus Andronicus', 'Troilus and Cressida', 'Twelfth Night', 'Two Gentlemen of Verona', 'A Winters Tale']
 
@@ -35,9 +36,13 @@ def shakespeare_raw_test_gen():
 def shakespeare_soft_train_gen():
 	raw_gen = shakespeare_raw_train_gen()
 	prev_line = next(raw_gen)[0]
+	samples = []
 	for line in raw_gen:
-		yield (prev_line, line[0], line[1])
+		samples.append((prev_line, line[0], line[1]))
 		prev_line = line[0]
+	random.shuffle(samples)
+	for sample in samples:	
+		yield sample
 
 def shakespeare_soft_test_gen():
 	raw_gen = shakespeare_raw_test_gen()

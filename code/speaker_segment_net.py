@@ -204,8 +204,8 @@ def build_model(input_dim):
 def many_to_one_model():
     data_dim, word2idx, indx2word = word_mapping(shakespeare_raw_train_gen)
     timesteps = 32
-    hidden_dim = 32
-    adam = Adam(lr=3e-1)
+    hidden_dim = 64
+    adam = Adam(lr=3e-3)
 
     encoder_a = Sequential()
     encoder_a.add(Embedding(data_dim, hidden_dim, batch_input_shape=(BATCH_SIZE, timesteps)))
@@ -216,8 +216,8 @@ def many_to_one_model():
     encoder_b.add(GRU(hidden_dim, stateful=True))
 
     model = Sequential()
-    model.add(Merge([encoder_a, encoder_b], mode='concat'))
-    model.add(Dense(32, activation='relu'))
+    model.add(Merge([encoder_a, encoder_b], mode=lambda x: x[0] - x[1], output_shape=lambda x: x[0]))
+    model.add(Dense(64, activation='relu'))
     model.add(Dense(2, activation='softmax'))
 
     model.compile(loss='binary_crossentropy',
@@ -246,7 +246,7 @@ def many_to_one_model():
 
             if did_speaker_change:
                 Y[i%NUM_SAMPLES] = [1, 0]
-                sample_weights[i%NUM_SAMPLES] = 10
+                sample_weights[i%NUM_SAMPLES] = 3
             else:
                 Y[i%NUM_SAMPLES] = [0, 1]
 
