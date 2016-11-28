@@ -20,7 +20,7 @@ BATCH_SIZE = 32
 NUM_SAMPLES = 32
 TIMESTEPS = 64
 BATCH_PER_EPOCH = 1
-NUM_EPOCH = 200
+NUM_EPOCH = 300
 
 
 def inf_generator(generator):
