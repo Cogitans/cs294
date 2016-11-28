@@ -20,7 +20,7 @@ BATCH_SIZE = 32
 NUM_SAMPLES = 32
 TIMESTEPS = 64
 BATCH_PER_EPOCH = 1
-NUM_EPOCH = 20
+NUM_EPOCH = 200
 
 
 def inf_generator(generator):
@@ -246,7 +246,7 @@ def many_to_one_model():
 
             if did_speaker_change:
                 Y[i%NUM_SAMPLES] = [1, 0]
-                sample_weights[i%NUM_SAMPLES] = 3
+                sample_weights[i%NUM_SAMPLES] = 2
             else:
                 Y[i%NUM_SAMPLES] = [0, 1]
 
