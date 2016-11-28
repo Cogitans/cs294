@@ -95,10 +95,14 @@ def movie_raw_gen():
 		parsed_csv = csv.reader(f, delimiter=';')
 		prev_speaker = None
 		for row in parsed_csv:
-			if len(row) == 1:
+			if len(row) == 1 and row[0] == 'BREAK':
 				prev_speaker = None
 				continue
-			speaker, _, line = row
+			if len(row) > 2:
+				speaker = row[0]
+				line = '.'.join(row[1:])
+			else:
+				speaker, line = row
 			if len(line) == 0:
 				continue
 			did_speaker_change = 1 if prev_speaker != speaker and prev_speaker else 0
@@ -124,5 +128,3 @@ def movie_soft_test_gen():
 		prev_line = line[0]
 	for i in range(int(0.8*len(samples)), len(samples)):
 		yield samples[i]
-
-
