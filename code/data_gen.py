@@ -105,9 +105,24 @@ def movie_raw_gen():
 			prev_speaker = speaker
 			yield line, did_speaker_change
 
-def movie_soft_gen():
+def movie_soft_train_gen():
+	samples = []
 	raw_gen = movie_raw_gen()
 	prev_line = next(raw_gen)[0]
 	for line in raw_gen:
-		yield (prev_line, line[0], line[1])
+		samples.append((prev_line, line[0], line[1]))
 		prev_line = line[0]
+	for i in range(int(0.8*len(samples))):
+		yield samples[i]
+
+def movie_soft_test_gen():
+	samples = []
+	raw_gen = movie_raw_gen()
+	prev_line = next(raw_gen)[0]
+	for line in raw_gen:
+		samples.append((prev_line, line[0], line[1]))
+		prev_line = line[0]
+	for i in range(int(0.8*len(samples)), len(samples)):
+		yield samples[i]
+
+
